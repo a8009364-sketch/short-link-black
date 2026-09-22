@@ -19,8 +19,8 @@ export default function NotFound() {
             Page not found
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
-            This page got snipped away. It may never have existed, or the link
-            was deleted.
+            This short link doesn&apos;t point anywhere. It may never have
+            existed, or it was deleted from the catalog.
           </p>
           <a
             href="/"

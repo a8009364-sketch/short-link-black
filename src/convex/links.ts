@@ -99,7 +99,7 @@ export const createLink = mutation({
   },
 });
 
-// Look up a link by short code (used by the redirect route + public stats).
+// Look up a link by short code (used by the redirect route).
 export const getByShortCode = internalQuery({
   args: { shortCode: v.string() },
   handler: async (ctx, args) => {
@@ -128,21 +128,38 @@ export const recordClick = internalMutation({
   },
 });
 
-// List the current user's links, newest first.
-export const listMyLinks = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) return [];
-    return await ctx.db
-      .query("links")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .order("desc")
-      .collect();
+// Public catalog: every link, with optional text filter on code or URL
+// and sort by newest, most-clicked, or code. Used by the console.
+export const catalog = query({
+  args: {
+    search: v.optional(v.string()),
+    sort: v.optional(v.union(v.literal("recent"), v.literal("clicks"), v.literal("code"))),
+  },
+  handler: async (ctx, args) => {
+    const links = await ctx.db.query("links").collect();
+    const term = (args.search ?? "").trim().toLowerCase();
+
+    let rows = links;
+    if (term) {
+      rows = rows.filter(
+        (l) =>
+          l.shortCode.toLowerCase().includes(term) ||
+          l.originalUrl.toLowerCase().includes(term),
+      );
+    }
+
+    const sort = args.sort ?? "recent";
+    rows.sort((a, b) => {
+      if (sort === "clicks") return b.clicks - a.clicks;
+      if (sort === "code") return a.shortCode.localeCompare(b.shortCode);
+      return b.createdAt - a.createdAt;
+    });
+
+    return rows;
   },
 });
 
-// Global stats for the landing page (total links + total clicks).
+// Aggregate stats for the console header.
 export const globalStats = query({
   args: {},
   handler: async (ctx) => {
@@ -152,7 +169,8 @@ export const globalStats = query({
   },
 });
 
-// Delete a link — only its owner can do that.
+// Delete a link — only the signed-in owner (or any signed-in user for
+// links created anonymously) can do that.
 export const deleteLink = mutation({
   args: { id: v.id("links") },
   handler: async (ctx, args) => {

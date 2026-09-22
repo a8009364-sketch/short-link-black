@@ -3,36 +3,25 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useMutation, useQuery } from "convex/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "convex/react";
 import {
   ArrowRight,
-  BarChart3,
   Check,
   Copy,
-  Globe,
+  Database,
+  KeyRound,
   Link2,
   Scissors,
-  Timer,
+  Search,
+  Terminal,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
-const EXAMPLES = [
-  "github.com/vercel/next.js",
-  "en.wikipedia.org/wiki/URL_shortening",
-  "developer.mozilla.org/en-US/docs/Web",
-];
-
-function shortenUrl(raw: string): string {
+function normalizeUrl(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return trimmed;
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
@@ -56,7 +45,7 @@ export default function Landing() {
 
   const handleShorten = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalized = shortenUrl(url);
+    const normalized = normalizeUrl(url);
     if (!normalized) return;
     setCreating(true);
     try {
@@ -101,7 +90,7 @@ export default function Landing() {
               <Scissors className="size-5" />
             </div>
             <span className="text-lg font-extrabold uppercase tracking-tight">
-              Snip<span className="text-muted-foreground">.link</span>
+              Short Link Black
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -110,7 +99,7 @@ export default function Landing() {
                 onClick={() => goTo("/dashboard")}
                 className="press border-2 border-border bg-accent font-bold shadow-brutal hover:bg-accent hover:text-accent-foreground"
               >
-                Dashboard
+                Console
                 <ArrowRight className="size-4" />
               </Button>
             ) : (
@@ -126,67 +115,82 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* Hero */}
       <main>
+        {/* Hero — service panel */}
         <section className="border-b-2 border-border bg-brutal-grid">
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-            <div className="grid items-center gap-12 lg:grid-cols-2">
-              {/* Left column */}
-              <div className="flex flex-col gap-6">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+            <div className="grid items-start gap-10 lg:grid-cols-2">
+              {/* Left: what this is */}
+              <div className="flex flex-col gap-5">
                 <Badge
                   variant="outline"
                   className="w-fit border-2 border-border bg-secondary px-3 py-1 text-xs font-bold uppercase tracking-widest"
                 >
-                  <Zap className="size-3" />
-                  Fast · Free · No tracking
+                  <span className="mr-1 inline-block size-2 bg-foreground" />
+                  Private redirect service · Single operator
                 </Badge>
-                <h1 className="text-5xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-6xl">
-                  Long URLs,
+                <h1 className="text-4xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-5xl">
+                  Short Link
                   <br />
-                  <span className="border-b-8 border-accent pb-1">
-                    Short Links
-                  </span>
+                  <span className="border-b-8 border-accent pb-1">Black</span>
                 </h1>
                 <p className="max-w-md text-lg text-muted-foreground">
-                  Paste a URL, get a compact link in milliseconds. Every click
-                  is counted — no clutter, no nonsense.
+                  A bare-bones URL shortener built for one person: me. It turns
+                  long URLs into compact <code>/s/</code> links, redirects them
+                  instantly, and keeps every mapping in a searchable catalog.
                 </p>
 
-                {/* Feature chips */}
-                <ul className="mt-2 flex flex-col gap-3 text-sm font-semibold">
-                  <li className="flex items-center gap-3">
-                    <span className="flex size-8 items-center justify-center border-2 border-border bg-secondary shadow-brutal-sm">
-                      <Zap className="size-4" />
-                    </span>
-                    Instant shortening with custom aliases
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="flex size-8 items-center justify-center border-2 border-border bg-accent shadow-brutal-sm">
-                      <BarChart3 className="size-4" />
-                    </span>
-                    Click counts on every link
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="flex size-8 items-center justify-center border-2 border-border bg-primary text-primary-foreground shadow-brutal-sm">
-                      <Globe className="size-4" />
-                    </span>
-                    Public JSON API at <code>/api/shorten</code>
-                  </li>
+                {/* Service facts */}
+                <ul className="mt-2 flex flex-col divide-y-2 divide-border border-2 border-border bg-card shadow-brutal">
+                  {[
+                    {
+                      icon: <Database className="size-4" />,
+                      label: "Storage",
+                      value: "Managed database, one table",
+                    },
+                    {
+                      icon: <Zap className="size-4" />,
+                      label: "Redirects",
+                      value: "HTTP 302, click-counted",
+                    },
+                    {
+                      icon: <Terminal className="size-4" />,
+                      label: "API",
+                      value: "POST /api/shorten",
+                    },
+                    {
+                      icon: <KeyRound className="size-4" />,
+                      label: "Access",
+                      value: "Operator sign-in via email code",
+                    },
+                  ].map((row) => (
+                    <li
+                      key={row.label}
+                      className="flex items-center gap-3 px-4 py-3 text-sm"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center border-2 border-border bg-secondary">
+                        {row.icon}
+                      </span>
+                      <span className="w-24 shrink-0 font-bold uppercase tracking-widest text-muted-foreground">
+                        {row.label}
+                      </span>
+                      <span className="font-semibold">{row.value}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
-              {/* Right column: shorten card */}
+              {/* Right: quick shorten tool */}
               <Card className="border-2 border-border shadow-brutal-lg">
-                <CardHeader className="border-b-2 border-border bg-secondary">
-                  <CardTitle className="flex items-center gap-2 text-lg font-extrabold uppercase">
-                    <Link2 className="size-5" />
-                    Shorten a URL
-                  </CardTitle>
-                  <CardDescription className="font-medium text-muted-foreground">
-                    Try it right now — no account needed.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4 p-6">
+                <div className="flex items-center justify-between border-b-2 border-border bg-primary px-5 py-3 text-primary-foreground">
+                  <span className="text-xs font-bold uppercase tracking-widest">
+                    Quick shorten
+                  </span>
+                  <span className="text-xs font-semibold opacity-70">
+                    no sign-in required
+                  </span>
+                </div>
+                <CardContent className="flex flex-col gap-4 p-5">
                   <form onSubmit={handleShorten} className="flex flex-col gap-4">
                     <Input
                       value={url}
@@ -201,14 +205,14 @@ export default function Landing() {
                       disabled={creating}
                       className="press h-12 border-2 border-border bg-primary font-extrabold uppercase shadow-brutal hover:bg-primary hover:text-primary-foreground"
                     >
-                      {creating ? "Snipping..." : "Snip it"}
+                      {creating ? "Shortening..." : "Shorten"}
                     </Button>
                   </form>
 
                   {shortCode && (
                     <div className="border-2 border-border bg-accent p-4">
                       <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground/70">
-                        Your short link
+                        Short URL
                       </p>
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <a
@@ -236,20 +240,20 @@ export default function Landing() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                      Try:
-                    </span>
-                    {EXAMPLES.map((example) => (
-                      <button
-                        key={example}
-                        type="button"
-                        onClick={() => setUrl(example)}
-                        className="press-sm max-w-full truncate border-2 border-border bg-card px-2 py-1 text-xs font-semibold shadow-brutal-sm hover:bg-secondary"
-                      >
-                        {example}
-                      </button>
-                    ))}
+                  <div className="border-2 border-dashed border-border bg-muted p-3">
+                    <p className="text-xs font-semibold leading-5 text-muted-foreground">
+                      Every link created here lands in the shared catalog.
+                      Sign in as the operator to browse, search and manage the
+                      full database.
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={() => goTo("/dashboard")}
+                      className="press-sm mt-3 h-9 w-full border-2 border-border bg-card text-xs font-bold uppercase shadow-brutal-sm hover:bg-card"
+                    >
+                      <Search className="size-3.5" />
+                      Open catalog
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -265,7 +269,7 @@ export default function Landing() {
                 {stats ? stats.totalLinks : "—"}
               </span>
               <span className="text-sm font-bold uppercase tracking-widest opacity-80">
-                Links snipped
+                Links stored
               </span>
             </div>
             <div className="flex flex-col items-center gap-1 px-6 py-10 text-center">
@@ -273,79 +277,91 @@ export default function Landing() {
                 {stats ? stats.totalClicks : "—"}
               </span>
               <span className="text-sm font-bold uppercase tracking-widest opacity-80">
-                Clicks redirected
+                Redirects served
               </span>
             </div>
             <div className="flex flex-col items-center gap-1 px-6 py-10 text-center">
               <span className="flex items-center gap-2 text-4xl font-extrabold">
-                <Timer className="size-8" />0 ms
+                <Link2 className="size-8" />/s/
               </span>
               <span className="text-sm font-bold uppercase tracking-widest opacity-80">
-                Added latency
+                Redirect path
               </span>
             </div>
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+        {/* API reference */}
+        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <h2 className="text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
-            How it works
+            API reference
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                step: "01",
-                title: "Paste",
-                body: "Drop any long URL into the box — with or without the https://.",
-                bg: "bg-secondary",
-              },
-              {
-                step: "02",
-                title: "Snip",
-                body: "We generate a unique 6-character code and store the mapping in the database.",
-                bg: "bg-accent",
-              },
-              {
-                step: "03",
-                title: "Share",
-                body: "Anyone opening your short link is redirected instantly. Clicks are tallied.",
-                bg: "bg-card",
-              },
-            ].map((item) => (
-              <div
-                key={item.step}
-                className={`border-2 border-border ${item.bg} p-6 shadow-brutal press-sm`}
-              >
-                <span className="text-4xl font-extrabold opacity-30">
-                  {item.step}
-                </span>
-                <h3 className="mt-4 text-xl font-extrabold uppercase">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-foreground/80">
-                  {item.body}
-                </p>
+          <p className="mt-3 max-w-2xl text-muted-foreground">
+            The frontend is just one client. The same service is available over
+            plain HTTP: two endpoints, JSON in and out.
+          </p>
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="border-2 border-border bg-card shadow-brutal">
+              <div className="flex items-center gap-2 border-b-2 border-border bg-secondary px-4 py-2">
+                <Badge
+                  variant="outline"
+                  className="border-2 border-border bg-card font-extrabold"
+                >
+                  POST
+                </Badge>
+                <code className="text-sm font-bold">/api/shorten</code>
               </div>
-            ))}
+              <div className="p-4 text-sm leading-6">
+                <p className="text-muted-foreground">
+                  Create a short link. Returns the generated code and the full
+                  short URL.
+                </p>
+                <pre className="mt-3 overflow-x-auto border-2 border-border bg-muted p-3 text-xs font-semibold">
+                  {`curl -X POST <origin>/api/shorten \\
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://example.com"}'`}
+                </pre>
+              </div>
+            </div>
+            <div className="border-2 border-border bg-card shadow-brutal">
+              <div className="flex items-center gap-2 border-b-2 border-border bg-secondary px-4 py-2">
+                <Badge
+                  variant="outline"
+                  className="border-2 border-border bg-card font-extrabold"
+                >
+                  GET
+                </Badge>
+                <code className="text-sm font-bold">/s/:code</code>
+              </div>
+              <div className="p-4 text-sm leading-6">
+                <p className="text-muted-foreground">
+                  Follow a short link. Responds with a 302 redirect to the
+                  original URL and increments the click counter.
+                </p>
+                <pre className="mt-3 overflow-x-auto border-2 border-border bg-muted p-3 text-xs font-semibold">
+                  {`curl -I <origin>/s/abc123`}
+                </pre>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* CTA */}
         <section className="border-t-2 border-border bg-secondary">
-          <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6">
-            <h2 className="max-w-xl text-3xl font-extrabold uppercase leading-tight sm:text-4xl">
-              Ready to tidy up your links?
+          <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-14 text-center sm:px-6">
+            <h2 className="max-w-xl text-2xl font-extrabold uppercase leading-tight sm:text-3xl">
+              Browse the full link catalog
             </h2>
             <p className="max-w-md text-muted-foreground">
-              Create a free account to keep your links, track clicks and use
-              custom aliases.
+              Every short link in the database is listed in the console with
+              its destination, click count and creation date — searchable at a
+              glance.
             </p>
             <Button
-              onClick={() => goTo("/auth?returnTo=/dashboard")}
+              onClick={() => goTo("/dashboard")}
               className="press h-14 border-2 border-border bg-accent px-8 text-lg font-extrabold uppercase shadow-brutal hover:bg-accent hover:text-accent-foreground"
             >
-              Start snipping
+              Open console
               <ArrowRight className="size-5" />
             </Button>
           </div>
@@ -355,10 +371,10 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t-2 border-border bg-background">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm font-semibold text-muted-foreground sm:flex-row sm:px-6">
-          <span>© {new Date().getFullYear()} Snip.link</span>
+          <span>© {new Date().getFullYear()} Short Link Black</span>
           <span className="flex items-center gap-2">
             <Scissors className="size-4" />
-            Long URLs, short links.
+            Long URLs in, short links out.
           </span>
         </div>
       </footer>

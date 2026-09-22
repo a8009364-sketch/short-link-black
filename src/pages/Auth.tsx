@@ -109,7 +109,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               <Scissors className="size-5" />
             </div>
             <span className="text-lg font-extrabold uppercase tracking-tight">
-              Snip<span className="text-muted-foreground">.link</span>
+              Short Link Black
             </span>
           </a>
         </div>
@@ -122,10 +122,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             <>
               <CardHeader className="border-b-2 border-border bg-secondary text-center">
                 <CardTitle className="text-xl font-extrabold uppercase">
-                  Get started
+                  Operator sign-in
                 </CardTitle>
                 <CardDescription className="font-medium">
-                  Enter your email to log in or sign up
+                  This is a private service. Sign in with your email to manage
+                  the link catalog.
                 </CardDescription>
               </CardHeader>
               <form onSubmit={handleEmailSubmit}>
@@ -178,7 +179,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     disabled={isLoading}
                   >
                     <UserX className="size-4" />
-                    Continue as guest
+                    Continue as operator
                   </Button>
                 </CardContent>
               </form>

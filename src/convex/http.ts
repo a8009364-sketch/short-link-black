@@ -23,7 +23,7 @@ http.route({
     if (!link) {
       return new Response(null, {
         status: 302,
-        headers: { Location: `${url.origin}/not-found-link` },
+        headers: { Location: `${url.origin}/` },
       });
     }
 

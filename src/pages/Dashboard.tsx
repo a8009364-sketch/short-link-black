@@ -25,11 +25,11 @@ import {
   Check,
   Copy,
   ExternalLink,
-  Link2,
   LogOut,
   MousePointerClick,
   Plus,
   Scissors,
+  Search,
   Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -49,10 +49,21 @@ function formatDate(ms: number): string {
   });
 }
 
+const SORTS = [
+  { key: "recent", label: "Newest" },
+  { key: "clicks", label: "Most clicked" },
+  { key: "code", label: "By code" },
+] as const;
+
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const links = useQuery(api.links.listMyLinks);
+
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<(typeof SORTS)[number]["key"]>("recent");
+
+  const links = useQuery(api.links.catalog, { search, sort });
+  const stats = useQuery(api.links.globalStats);
 
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
@@ -111,8 +122,10 @@ export default function Dashboard() {
     navigate("/");
   };
 
-  const totalClicks =
-    links?.reduce((sum, l) => sum + l.clicks, 0) ?? 0;
+  const topLink =
+    links && links.length > 0
+      ? [...links].sort((a, b) => b.clicks - a.clicks)[0]
+      : undefined;
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -124,7 +137,7 @@ export default function Dashboard() {
               <Scissors className="size-5" />
             </div>
             <span className="text-lg font-extrabold uppercase tracking-tight">
-              Snip<span className="text-muted-foreground">.link</span>
+              Short Link Black
             </span>
           </a>
           <div className="flex items-center gap-3">
@@ -148,11 +161,11 @@ export default function Dashboard() {
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">
-            Your links
+            Link catalog
           </h1>
           <p className="font-medium text-muted-foreground">
-            Welcome{user?.name ? `, ${user.name}` : ""} — snip URLs, track
-            clicks, share everywhere.
+            Operator console — browse, search and manage every short link in
+            the database.
           </p>
         </div>
 
@@ -163,23 +176,23 @@ export default function Dashboard() {
               Total links
             </p>
             <p className="mt-1 text-3xl font-extrabold">
-              {links?.length ?? "—"}
+              {stats ? stats.totalLinks : "—"}
             </p>
           </div>
           <div className="border-2 border-border bg-accent p-4 shadow-brutal">
             <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground/70">
               Total clicks
             </p>
-            <p className="mt-1 text-3xl font-extrabold">{totalClicks}</p>
+            <p className="mt-1 text-3xl font-extrabold">
+              {stats ? stats.totalClicks : "—"}
+            </p>
           </div>
           <div className="border-2 border-border bg-primary p-4 text-primary-foreground shadow-brutal">
             <p className="text-xs font-bold uppercase tracking-widest opacity-80">
-              Top link
+              Most clicked
             </p>
             <p className="mt-1 truncate text-lg font-extrabold">
-              {links && links.length > 0
-                ? `/s/${[...links].sort((a, b) => b.clicks - a.clicks)[0].shortCode}`
-                : "—"}
+              {topLink ? `/s/${topLink.shortCode}` : "—"}
             </p>
           </div>
         </div>
@@ -192,8 +205,8 @@ export default function Dashboard() {
               New short link
             </CardTitle>
             <CardDescription className="font-medium text-muted-foreground">
-              Optionally pick your own alias (3–32 chars, letters, numbers,
-              dashes).
+              Optionally pick a custom alias (3–32 characters: letters,
+              numbers and dashes).
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
@@ -224,56 +237,89 @@ export default function Dashboard() {
                   disabled={creating}
                   className="press h-12 border-2 border-border bg-primary font-extrabold uppercase shadow-brutal hover:bg-primary hover:text-primary-foreground"
                 >
-                  {creating ? "Snipping..." : "Snip it"}
+                  {creating ? "Shortening..." : "Shorten"}
                 </Button>
               </div>
             </form>
           </CardContent>
         </Card>
 
-        {/* Links table */}
+        {/* Catalog table */}
         <Card className="border-2 border-border shadow-brutal">
           <CardHeader className="border-b-2 border-border bg-secondary">
             <CardTitle className="flex items-center gap-2 text-lg font-extrabold uppercase">
               <BarChart3 className="size-5" />
-              All links
+              Catalog
             </CardTitle>
             <CardDescription className="font-medium text-muted-foreground">
-              Newest first. Click the copy icon to grab the short URL.
+              Search by code or destination URL. Newest first by default.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
+            {/* Search + sort controls */}
+            <div className="flex flex-col gap-3 border-b-2 border-border bg-muted/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative w-full sm:max-w-xs">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search code or URL…"
+                  className="h-10 border-2 border-border bg-card pl-9 font-medium"
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {SORTS.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => setSort(s.key)}
+                    className={`press-sm border-2 border-border px-3 py-1.5 text-xs font-bold uppercase shadow-brutal-sm ${
+                      sort === s.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card hover:bg-secondary"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {links === undefined ? (
               <p className="p-6 text-sm font-medium text-muted-foreground">
-                Loading links…
+                Loading catalog…
               </p>
             ) : links.length === 0 ? (
               <div className="flex flex-col items-center gap-3 p-10 text-center">
                 <span className="flex size-12 items-center justify-center border-2 border-border bg-accent shadow-brutal-sm">
                   <MousePointerClick className="size-6" />
                 </span>
-                <p className="font-extrabold uppercase">No links yet</p>
+                <p className="font-extrabold uppercase">
+                  {search ? "No matches" : "Catalog is empty"}
+                </p>
                 <p className="text-sm text-muted-foreground">
-                  Snip your first URL above to see it here.
+                  {search
+                    ? `Nothing matches "${search}". Try a different term.`
+                    : "Create your first short link above to fill it."}
                 </p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow className="border-b-2 border-border hover:bg-transparent">
-                    <TableHead className="h-11 px-6 text-xs font-bold uppercase tracking-widest">
+                    <TableHead className="h-11 px-4 text-xs font-bold uppercase tracking-widest">
                       Short link
                     </TableHead>
-                    <TableHead className="h-11 px-6 text-xs font-bold uppercase tracking-widest">
+                    <TableHead className="h-11 px-4 text-xs font-bold uppercase tracking-widest">
                       Destination
                     </TableHead>
-                    <TableHead className="h-11 px-6 text-right text-xs font-bold uppercase tracking-widest">
+                    <TableHead className="h-11 px-4 text-right text-xs font-bold uppercase tracking-widest">
                       Clicks
                     </TableHead>
-                    <TableHead className="h-11 px-6 text-xs font-bold uppercase tracking-widest">
+                    <TableHead className="h-11 px-4 text-xs font-bold uppercase tracking-widest">
                       Created
                     </TableHead>
-                    <TableHead className="h-11 px-6 text-right text-xs font-bold uppercase tracking-widest">
+                    <TableHead className="h-11 px-4 text-right text-xs font-bold uppercase tracking-widest">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -284,7 +330,7 @@ export default function Dashboard() {
                       key={link._id}
                       className="border-b-2 border-border last:border-b-0"
                     >
-                      <TableCell className="px-6 py-4 font-bold">
+                      <TableCell className="px-4 py-4 font-bold">
                         <div className="flex items-center gap-2">
                           <a
                             href={`/s/${link.shortCode}`}
@@ -309,7 +355,7 @@ export default function Dashboard() {
                           </Button>
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-72 px-6 py-4">
+                      <TableCell className="max-w-72 px-4 py-4">
                         <a
                           href={link.originalUrl}
                           target="_blank"
@@ -320,7 +366,7 @@ export default function Dashboard() {
                           <ExternalLink className="size-3.5 shrink-0" />
                         </a>
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-right">
+                      <TableCell className="px-4 py-4 text-right">
                         <Badge
                           variant="outline"
                           className="border-2 border-border bg-secondary font-extrabold"
@@ -329,10 +375,10 @@ export default function Dashboard() {
                           {link.clicks}
                         </Badge>
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-sm font-medium text-muted-foreground">
+                      <TableCell className="px-4 py-4 text-sm font-medium text-muted-foreground">
                         {formatDate(link.createdAt)}
                       </TableCell>
-                      <TableCell className="px-6 py-4 text-right">
+                      <TableCell className="px-4 py-4 text-right">
                         <Button
                           size="icon"
                           variant="ghost"
